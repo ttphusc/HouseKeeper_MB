@@ -8,7 +8,7 @@ import 'booking_screen.dart';
 class StaffDetailScreen extends StatefulWidget {
   final int staffId;
 
-  const StaffDetailScreen({Key? key, required this.staffId}) : super(key: key);
+  const StaffDetailScreen({super.key, required this.staffId});
 
   @override
   State<StaffDetailScreen> createState() => _StaffDetailScreenState();
@@ -121,25 +121,25 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF46DFB1),
-        title: Text('Chi tiết nhân viên'),
+        backgroundColor: const Color(0xFF46DFB1),
+        title: const Text('Chi tiết nhân viên'),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : staffDetail == null
-              ? Center(child: Text('Không tìm thấy thông tin nhân viên'))
+              ? const Center(child: Text('Không tìm thấy thông tin nhân viên'))
               : SingleChildScrollView(
                   child: Column(
                     children: [
                       _buildStaffProfile(),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       _buildAvailabilityCalendar(),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       _buildBookButton(),
                     ],
                   ),
@@ -149,9 +149,9 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
 
   Widget _buildStaffProfile() {
     return Card(
-      margin: EdgeInsets.all(16),
+      margin: const EdgeInsets.all(16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             Stack(
@@ -160,14 +160,14 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
                   alignment: Alignment.center,
                   child: CircleAvatar(
                     radius: 50,
-                    backgroundColor: Color(0xFF46DFB1),
+                    backgroundColor: const Color(0xFF46DFB1),
                     child: CircleAvatar(
                       radius: 47,
                       backgroundImage: staffDetail?.avatarUrl != null
                           ? NetworkImage(staffDetail!.avatarUrl!)
                           : null,
                       child: staffDetail?.avatarUrl == null
-                          ? Icon(Icons.person, size: 50)
+                          ? const Icon(Icons.person, size: 50)
                           : null,
                     ),
                   ),
@@ -185,15 +185,15 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               staffDetail?.name ?? '',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               staffDetail?.address ?? '',
               style: TextStyle(
@@ -201,20 +201,20 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
                 color: Colors.grey[600],
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
                 return Icon(
                   Icons.star_rate_rounded,
                   color: index < (staffDetail?.rating ?? 0)
-                      ? Color(0xFFFFC107)
-                      : Color(0xFFFFE082),
+                      ? const Color(0xFFFFC107)
+                      : const Color(0xFFFFE082),
                   size: 24,
                 );
               }),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -243,7 +243,7 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
     return Column(
       children: [
         Icon(icon, size: 24, color: isLink ? Colors.blue : Colors.grey),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           text,
           style: TextStyle(
@@ -263,24 +263,24 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
     });
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Lịch làm việc',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             GridView.builder(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 childAspectRatio: 1.2,
                 crossAxisSpacing: 10,
@@ -306,17 +306,17 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
                   child: Column(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Color(0xFF46DFB1).withOpacity(0.1),
-                          borderRadius: BorderRadius.only(
+                          color: const Color(0xFF46DFB1).withOpacity(0.1),
+                          borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(8),
                             topRight: Radius.circular(8),
                           ),
                         ),
                         child: Text(
                           dateStr,
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                       Expanded(
@@ -329,7 +329,7 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
                                     fontSize: 12,
                                   ),
                                 )
-                              : Text(
+                              : const Text(
                                   '08:00 - 21:00',
                                   style: TextStyle(
                                     color: Color(0xFF46DFB1),
@@ -352,7 +352,7 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
 
   Widget _buildBookButton() {
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: ElevatedButton(
         onPressed: () {
           Navigator.push(
@@ -364,12 +364,12 @@ class _StaffDetailScreenState extends State<StaffDetailScreen> {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
-          minimumSize: Size(double.infinity, 50),
+          minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child: Text(
+        child: const Text(
           'Đặt lịch với nhân viên',
           style: TextStyle(
             fontSize: 16,

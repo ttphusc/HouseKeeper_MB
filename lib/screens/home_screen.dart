@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:intl/intl.dart';
 
 import '../services/api_service.dart';
@@ -13,9 +11,7 @@ import 'cleaning_service_screen.dart';
 import 'notification_screen.dart';
 import 'order_history_screen.dart';
 import 'profile_screen.dart';
-import '../models/service.dart';
 import '../models/staff.dart';
-import '../widgets/image_carousel.dart';
 import 'support_screen.dart';
 import 'wallet_screen.dart';
 import 'chatbot_screen.dart';
@@ -702,7 +698,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFeaturedStaffList() {
     if (_isLoading) {
-      return SizedBox(
+      return const SizedBox(
         height: 220, // Increased height
         child: Center(
           child: CircularProgressIndicator(color: Color(0xFF46DFB1)),
@@ -712,9 +708,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Container(
       height: 220, // Increased height
-      padding: EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: featuredStaff.isEmpty
-          ? Center(child: Text("Không có nhân viên nổi bật"))
+          ? const Center(child: Text("Không có nhân viên nổi bật"))
           : ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: featuredStaff.length,
@@ -722,9 +718,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 final staff = featuredStaff[index];
                 return Container(
                   width: 180, // Increased width
-                  margin: EdgeInsets.only(right: 12),
+                  margin: const EdgeInsets.only(right: 12),
                   decoration: BoxDecoration(
-                    color: Color(0xFFE3F6F9),
+                    color: const Color(0xFFE3F6F9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -743,15 +739,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                   height: 70,
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) =>
-                                      Icon(Icons.person, size: 35),
+                                      const Icon(Icons.person, size: 35),
                                 ),
                               )
-                            : Icon(Icons.person, size: 35),
+                            : const Icon(Icons.person, size: 35),
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
                         staff.name,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -759,35 +755,37 @@ class _HomeScreenState extends State<HomeScreen> {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.cake, size: 14, color: Colors.black54),
-                          SizedBox(width: 4),
+                          const Icon(Icons.cake,
+                              size: 14, color: Colors.black54),
+                          const SizedBox(width: 4),
                           Text(
                             'Tuổi: ${staff.age}',
-                            style: TextStyle(fontSize: 14),
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ],
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.work, size: 14, color: Colors.black54),
-                          SizedBox(width: 4),
+                          const Icon(Icons.work,
+                              size: 14, color: Colors.black54),
+                          const SizedBox(width: 4),
                           Flexible(
                             child: Text(
                               'KN: ${staff.experience}',
-                              style: TextStyle(fontSize: 14),
+                              style: const TextStyle(fontSize: 14),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(5, (index) {
@@ -796,8 +794,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ? Icons.star_rate_rounded
                                 : Icons.star_rate_rounded,
                             color: index < staff.rating
-                                ? Color(0xFFFFC107)
-                                : Color(0xFFFFE082),
+                                ? const Color(0xFFFFC107)
+                                : const Color(0xFFFFE082),
                             size: 20,
                           );
                         }),
@@ -816,13 +814,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
-                            minimumSize: Size(double.infinity, 32),
+                            minimumSize: const Size(double.infinity, 32),
                             padding: EdgeInsets.zero,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
-                          child: Text(
+                          child: const Text(
                             'XEM CHI TIẾT',
                             style: TextStyle(
                               color: Colors.white,

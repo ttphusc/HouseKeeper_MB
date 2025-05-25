@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import 'package:pusher_client/pusher_client.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:convert';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -31,12 +31,14 @@ class _SupportScreenState extends State<SupportScreen> {
   void initState() {
     super.initState();
     _initializeChat();
+    // Thêm delay ngắn để đảm bảo widget đã được render
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
   }
 
   Future<void> _initializeChat() async {
     await _loadCurrentUserId();
-    await _loadAdminInfo();
-    await _initializePusher();
   }
 
   Future<void> _loadCurrentUserId() async {
@@ -58,6 +60,12 @@ class _SupportScreenState extends State<SupportScreen> {
           _currentUserId = response.data['nguoi_dung_id'];
         });
         print('Current User ID: $_currentUserId');
+
+        // Sau khi lấy được ID chính xác, khởi tạo Pusher
+        await _initializePusher();
+
+        // Sau đó load admin info và tin nhắn
+        await _loadAdminInfo();
       }
     } catch (e) {
       print('Lỗi khi lấy ID người dùng hiện tại: $e');
@@ -116,7 +124,10 @@ class _SupportScreenState extends State<SupportScreen> {
           _messages = List<Map<String, dynamic>>.from(response.data);
           _isLoading = false;
         });
-        _scrollToBottom();
+        // Thêm delay ngắn để đảm bảo tin nhắn đã được render
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _scrollToBottom();
+        });
         print('Chi tiết tin nhắn với admin: $_messages');
       }
     } catch (e) {
@@ -133,12 +144,18 @@ class _SupportScreenState extends State<SupportScreen> {
     }
 
     if (kIsWeb) {
-      // Web platform - skip Pusher initialization
       print('Đang chạy trên web - bỏ qua khởi tạo Pusher');
       return;
     }
 
     try {
+      print('Initializing Pusher for user ID: $_currentUserId');
+
+      // Disconnect existing connection if any
+      channel?.unbind('.message-sent-event');
+      pusher?.unsubscribe('chat_user.$_currentUserId');
+      await pusher?.disconnect();
+
       pusher = PusherClient(
         '0911c58bf746f219ad1d',
         PusherOptions(
@@ -149,23 +166,67 @@ class _SupportScreenState extends State<SupportScreen> {
 
       await pusher?.connect();
 
-      channel = pusher?.subscribe('chat_user.$_currentUserId');
+      // Subscribe to chat channel exactly like website
+      String channelName = 'chat_user.$_currentUserId';
+      print('Subscribing to channel: $channelName');
 
-      channel?.bind('message-sent-event', (event) {
-        print('Sự kiện nhận được: $event');
+      channel = pusher?.subscribe(channelName);
+
+      channel?.bind('.message-sent-event', (PusherEvent? event) {
+        print('Received event: ${event?.data}');
+
         if (event?.data != null) {
-          final data = event!.data as Map<String, dynamic>;
-          if (data['sender_type'] != 1) {
-            setState(() {
-              _messages.add(Map<String, dynamic>.from(data));
-            });
-            _scrollToBottom();
+          try {
+            Map<String, dynamic> eventData = event!.data is String
+                ? jsonDecode(event.data as String)
+                : Map<String, dynamic>.from(event.data as Map);
+
+            print('Parsed event data: $eventData');
+
+            // Match exactly website's condition
+            if (eventData['sender_type'] != 1) {
+              print('✅ Received message from admin');
+              setState(() {
+                _messages = [..._messages, eventData];
+              });
+              _scrollToBottom();
+
+              // Show notification like website
+              _showSuccess(
+                  '🔔 Tin nhắn mới từ admin: ${eventData['noi_dung']}');
+            }
+          } catch (e) {
+            print('Error processing event: $e');
+            print('Raw event data: ${event?.data}');
           }
         }
       });
+
+      pusher?.onConnectionStateChange((state) {
+        print('Pusher connection state: ${state?.currentState}');
+
+        print('Successfully connected to Pusher');
+        print('Listening on channel: $channelName');
+        if (state?.currentState == 'failed') {
+          print('Connection failed - retrying in 3 seconds...');
+          Future.delayed(const Duration(seconds: 3), () {
+            _initializePusher();
+          });
+        }
+      });
     } catch (e) {
-      print('Lỗi khi khởi tạo Pusher: $e');
+      print('Error initializing Pusher: $e');
+      print('Stack trace: ${e is Error ? e.stackTrace : ''}');
+      // Retry connection after delay
+      Future.delayed(const Duration(seconds: 3), () {
+        _initializePusher();
+      });
     }
+  }
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token_nguoi_dung');
   }
 
   Future<void> _sendMessage() async {
@@ -254,7 +315,7 @@ class _SupportScreenState extends State<SupportScreen> {
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      Future.delayed(const Duration(milliseconds: 100), () {
+      Future.delayed(const Duration(milliseconds: 300), () {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -297,168 +358,84 @@ class _SupportScreenState extends State<SupportScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF46DFB1),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_adminInfo['ho_va_ten'] ?? 'Admin'),
-            Row(
+  Future<void> _refreshChat() async {
+    try {
+      // Disconnect current Pusher connection
+      channel?.unbind('.message-sent-event');
+      pusher?.unsubscribe('chat_user.$_currentUserId');
+      pusher?.unsubscribe('notifications.$_currentUserId');
+      pusher?.disconnect();
+
+      // Reinitialize everything
+      await _loadCurrentUserId(); // This will also reinitialize Pusher
+      await _loadAdminInfo();
+      await _loadMessages();
+
+      _showSuccess('Đã cập nhật tin nhắn');
+    } catch (e) {
+      print('Error refreshing chat: $e');
+      _showError('Không thể cập nhật tin nhắn');
+    }
+  }
+
+  Widget _buildMessageItem(Map<String, dynamic> message) {
+    final isSentByMe = message['sender_type'] == 1;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment:
+            isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isSentByMe) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundImage: NetworkImage(
+                message['nguoi_gui_avatar'] ?? 'https://via.placeholder.com/30',
+              ),
+              backgroundColor: Colors.grey[200],
+            ),
+            const SizedBox(width: 8),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: isSentByMe
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 10,
-                  height: 10,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: _adminInfo['tinh_trang'] == 1
-                        ? Colors.green
-                        : Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _adminInfo['tinh_trang'] == 1 ? 'Online' : 'Offline',
-                  style: const TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _messages.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Không có tin nhắn nào.\nHãy bắt đầu cuộc trò chuyện!',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _messages.length,
-                        itemBuilder: (context, index) {
-                          final message = _messages[index];
-                          final isSentByMe = message['sender_type'] == 1;
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              mainAxisAlignment: isSentByMe
-                                  ? MainAxisAlignment.end
-                                  : MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (!isSentByMe) ...[
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundImage: NetworkImage(
-                                      message['nguoi_gui_avatar'] ??
-                                          'https://via.placeholder.com/30',
-                                    ),
-                                    backgroundColor: Colors.grey[200],
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
-                                Flexible(
-                                  child: Column(
-                                    crossAxisAlignment: isSentByMe
-                                        ? CrossAxisAlignment.end
-                                        : CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: isSentByMe
-                                              ? const Color(0xFF46DFB1)
-                                              : Colors.grey[200],
-                                          borderRadius:
-                                              BorderRadius.circular(16),
-                                        ),
-                                        child: Text(
-                                          message['noi_dung'] ?? '',
-                                          style: TextStyle(
-                                            color: isSentByMe
-                                                ? Colors.white
-                                                : Colors.black87,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _formatTime(message['created_at']),
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                    color:
+                        isSentByMe ? const Color(0xFF007AFF) : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 3,
+                        offset: const Offset(0, 1),
                       ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey[300]!),
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập tin nhắn',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                    ),
-                    enabled: !_isSending,
-                    onSubmitted: (_) => _sendMessage(),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _isSending ? null : _sendMessage,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF46DFB1),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                  child: Text(
+                    message['noi_dung'] ?? 'Không có nội dung',
+                    style: TextStyle(
+                      color: isSentByMe ? Colors.white : Colors.black87,
+                      fontSize: 15,
                     ),
                   ),
-                  child: Text(_isSending ? 'Đang gửi...' : 'Gửi'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    _formatTime(message['created_at']),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -469,12 +446,174 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        await _refreshChat();
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF46DFB1),
+          leading: IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshChat,
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _adminInfo['ho_va_ten'] ?? 'Admin',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: _adminInfo['tinh_trang'] == 1
+                          ? Colors.green
+                          : Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _adminInfo['tinh_trang'] == 1 ? 'Online' : 'Offline',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _messages.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Không có tin nhắn nào.\nHãy bắt đầu cuộc trò chuyện!',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) =>
+                              _buildMessageItem(_messages[index]),
+                        ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(color: Colors.grey[300]!),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 3,
+                    offset: const Offset(0, -1),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _messageController,
+                        decoration: InputDecoration(
+                          hintText: 'Nhập tin nhắn',
+                          hintStyle: TextStyle(color: Colors.grey[500]),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide:
+                                const BorderSide(color: Color(0xFF46DFB1)),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                        ),
+                        enabled: !_isSending,
+                        onSubmitted: (_) => _sendMessage(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _isSending ? null : _sendMessage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF46DFB1),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                        elevation: 2,
+                      ),
+                      child: Text(
+                        _isSending ? 'Đang gửi...' : 'Gửi',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
   void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    channel?.unbind('message-sent-event');
+    print('Disposing chat screen - cleaning up Pusher connection');
+    channel?.unbind('.message-sent-event');
     pusher?.unsubscribe('chat_user.$_currentUserId');
     pusher?.disconnect();
+    _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }

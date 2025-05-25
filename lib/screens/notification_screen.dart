@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../services/websocket_service.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -15,11 +16,67 @@ class _NotificationScreenState extends State<NotificationScreen> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _notifications = [];
   String? _errorMessage;
+  int _currentUserId = 0;
+  final WebSocketService _webSocketService = WebSocketService();
 
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
+    _loadCurrentUserId();
+  }
+
+  @override
+  void dispose() {
+    _webSocketService.disconnect();
+    super.dispose();
+  }
+
+  Future<void> _loadCurrentUserId() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token_nguoi_dung');
+
+      final response = await _dio.get(
+        'http://127.0.0.1:8000/api/nguoi-dung/id',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      if (response.data['nguoi_dung_id'] != null) {
+        setState(() {
+          _currentUserId = response.data['nguoi_dung_id'];
+        });
+        _loadNotifications();
+        _setupWebSocket();
+      }
+    } catch (e) {
+      print('Error loading user ID: $e');
+      _showError('Không thể tải ID người dùng');
+    }
+  }
+
+  void _setupWebSocket() {
+    _webSocketService.connect();
+    _webSocketService.listenToNotifications(_currentUserId, (notification) {
+      setState(() {
+        _notifications.insert(0, notification);
+      });
+      _showNewNotification(notification['loi_nhan']);
+    });
+  }
+
+  void _showNewNotification(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFF46DFB1),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _loadNotifications() async {
@@ -33,7 +90,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final token = prefs.getString('token_nguoi_dung');
 
       final response = await _dio.get(
-        'http://127.0.0.1:8000/api/nguoi-dung/thong-bao',
+        'http://127.0.0.1:8000/api/nguoi-dung/thong-bao/getNhanDonTuNV',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -43,25 +100,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
       setState(() {
         _isLoading = false;
-        if (response.data['data'] != null) {
+        if (response.data['status'] == true && response.data['data'] != null) {
           _notifications =
               List<Map<String, dynamic>>.from(response.data['data']);
         }
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Không thể tải thông báo. Vui lòng thử lại sau.';
-      });
-
+      _showError('Không thể tải thông báo. Vui lòng thử lại sau.');
       print('Error loading notifications: $e');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_errorMessage ?? 'Đã xảy ra lỗi khi tải thông báo'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -71,7 +117,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       final token = prefs.getString('token_nguoi_dung');
 
       await _dio.post(
-        'http://127.0.0.1:8000/api/nguoi-dung/thong-bao/danh-dau-da-doc/$notificationId',
+        'http://127.0.0.1:8000/api/nguoi-dung/thay-doi-trang-thai-doc/$notificationId',
         options: Options(
           headers: {
             'Authorization': 'Bearer $token',
@@ -83,112 +129,48 @@ class _NotificationScreenState extends State<NotificationScreen> {
       _loadNotifications();
     } catch (e) {
       print('Error marking notification as read: $e');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không thể đánh dấu đã đọc. Vui lòng thử lại.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showError('Không thể đánh dấu đã đọc. Vui lòng thử lại.');
     }
   }
 
-  Future<void> _markAllAsRead() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token_nguoi_dung');
+  void _showError(String message) {
+    setState(() {
+      _isLoading = false;
+      _errorMessage = message;
+    });
 
-      final response = await _dio.post(
-        'http://127.0.0.1:8000/api/nguoi-dung/thong-bao/danh-dau-tat-ca-da-doc',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
-      );
-
-      if (response.data['status'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đánh dấu tất cả đã đọc'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-
-      // Reload notifications to update UI
-      _loadNotifications();
-    } catch (e) {
-      print('Error marking all notifications as read: $e');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không thể đánh dấu tất cả đã đọc. Vui lòng thử lại.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
-  Future<void> _deleteNotification(int notificationId) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token_nguoi_dung');
+  void _navigateToOrderDetail(Map<String, dynamic> notification) {
+    if (notification['id_don_hang'] == null) return;
 
-      final response = await _dio.post(
-        'http://127.0.0.1:8000/api/nguoi-dung/thong-bao/xoa-thong-bao/$notificationId',
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $token',
-          },
-        ),
-      );
-
-      if (response.data['status'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response.data['message'] ?? 'Đã xóa thông báo'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-
-      // Reload notifications to update UI
-      _loadNotifications();
-    } catch (e) {
-      print('Error deleting notification: $e');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Không thể xóa thông báo. Vui lòng thử lại.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    String route;
+    switch (notification['id_dich_vu']) {
+      case 1:
+        route = '/nguoi-dung/chitietdontheogio/${notification['id_don_hang']}';
+        break;
+      case 2:
+        route = '/nguoi-dung/chitietdondinhki/${notification['id_don_hang']}';
+        break;
+      case 3:
+        route = '/nguoi-dung/chitiettongvesinh/${notification['id_don_hang']}';
+        break;
+      default:
+        return;
     }
-  }
 
-  String _formatDate(String dateString) {
-    try {
-      final dateTime = DateTime.parse(dateString);
-      return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
-    } catch (e) {
-      return dateString;
-    }
-  }
+    // Mark notification as read when viewing details
+    _markAsRead(notification['id']);
 
-  void _navigateToNotificationDetail(Map<String, dynamic> notification) {
-    // Implement navigation to detailed notification view based on notification type
-    // You would need to add more logic here based on your notification structure
-    if (notification['id_don_hang'] != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Chuyển đến chi tiết đơn hàng'),
-          backgroundColor: Colors.blue,
-        ),
-      );
-      // Navigate to order details
-      // Navigator.push(context, MaterialPageRoute(builder: (context) => OrderDetailsScreen(orderId: notification['id_don_hang'])));
-    }
+    // Navigate to the appropriate screen based on your routing setup
+    // You'll need to implement the actual navigation based on your app's structure
+    print('Navigating to: $route');
   }
 
   @override
@@ -198,13 +180,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
         backgroundColor: const Color(0xFF46DFB1),
         title: const Text('Thông báo'),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all),
-            tooltip: 'Đánh dấu tất cả đã đọc',
-            onPressed: _notifications.isEmpty ? null : _markAllAsRead,
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -258,114 +233,38 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotificationItem(Map<String, dynamic> notification) {
-    final bool isRead = notification['trang_thai'] == 1;
+    final bool isRead = notification['is_read'] == 1;
 
-    return Dismissible(
-      key: Key(notification['id'].toString()),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20.0),
-        color: Colors.red,
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      title: Text(
+        'Thông Báo: ${notification['id']}',
+        style: TextStyle(
+          fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+          fontSize: 16,
         ),
       ),
-      confirmDismiss: (direction) async {
-        return await showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Xóa thông báo'),
-              content: const Text('Bạn có chắc chắn muốn xóa thông báo này?'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Hủy'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Xóa', style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            );
-          },
-        );
-      },
-      onDismissed: (direction) {
-        _deleteNotification(notification['id']);
-      },
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: const Color(0xFF46DFB1).withOpacity(0.1),
-          foregroundColor: const Color(0xFF46DFB1),
-          child: Icon(
-            _getNotificationIcon(notification['loai']),
-            size: 24,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 4),
+          Text(
+            notification['loi_nhan'] ?? 'Không có nội dung',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-        title: Text(
-          notification['tieu_de'] ?? 'Không có tiêu đề',
-          style: TextStyle(
-            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              notification['noi_dung'] ?? 'Không có nội dung',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _formatDate(notification['created_at'] ?? ''),
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade400,
-              ),
-            ),
-          ],
-        ),
-        trailing: !isRead
-            ? IconButton(
-                icon:
-                    const Icon(Icons.check_circle_outline, color: Colors.blue),
-                tooltip: 'Đánh dấu đã đọc',
-                onPressed: () => _markAsRead(notification['id']),
-              )
-            : null,
-        onTap: () {
-          if (!isRead) {
-            _markAsRead(notification['id']);
-          }
-          _navigateToNotificationDetail(notification);
-        },
-        tileColor: isRead ? null : const Color(0xFF46DFB1).withOpacity(0.05),
+        ],
       ),
+      trailing: ElevatedButton(
+        onPressed: () => _navigateToOrderDetail(notification),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF46DFB1),
+          foregroundColor: Colors.white,
+        ),
+        child: const Text('Xem Chi Tiết'),
+      ),
+      tileColor: isRead ? null : const Color(0xFF46DFB1).withOpacity(0.05),
+      onTap: () => _navigateToOrderDetail(notification),
     );
-  }
-
-  IconData _getNotificationIcon(dynamic type) {
-    switch (type) {
-      case 'don_hang':
-        return Icons.shopping_bag;
-      case 'thanh_toan':
-        return Icons.payment;
-      case 'he_thong':
-        return Icons.notifications;
-      case 'khac':
-      default:
-        return Icons.notifications_active;
-    }
   }
 }
