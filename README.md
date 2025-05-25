@@ -1,6 +1,6 @@
-# Home Hero Mobile App
+# House Keeper Mobile App
 
-A mobile application for HomeHero, a home cleaning and service provider app. This project is built with Flutter.
+A mobile application for HouseKeeper, a home cleaning and service provider app. This project is built with Flutter.
 
 ## Features
 
