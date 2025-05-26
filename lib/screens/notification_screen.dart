@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart';
 import '../services/websocket_service.dart';
+import 'order_details/hourly_detail_screen.dart';
+import 'order_details/periodic_detail_screen.dart';
+import 'order_details/general_cleaning_detail_screen.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -49,7 +51,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         setState(() {
           _currentUserId = response.data['nguoi_dung_id'];
         });
-        _loadNotifications();
+    _loadNotifications();
         _setupWebSocket();
       }
     } catch (e) {
@@ -139,38 +141,42 @@ class _NotificationScreenState extends State<NotificationScreen> {
       _errorMessage = message;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
 
   void _navigateToOrderDetail(Map<String, dynamic> notification) {
     if (notification['id_don_hang'] == null) return;
 
-    String route;
+    // Mark notification as read when viewing details
+    _markAsRead(notification['id']);
+
+    Widget? screen;
     switch (notification['id_dich_vu']) {
       case 1:
-        route = '/nguoi-dung/chitietdontheogio/${notification['id_don_hang']}';
+        screen =
+            HourlyDetailScreen(orderId: notification['id_don_hang'].toString());
         break;
       case 2:
-        route = '/nguoi-dung/chitietdondinhki/${notification['id_don_hang']}';
+        screen = PeriodicDetailScreen(
+            orderId: notification['id_don_hang'].toString());
         break;
       case 3:
-        route = '/nguoi-dung/chitiettongvesinh/${notification['id_don_hang']}';
+        screen = GeneralCleaningDetailScreen(
+            orderId: notification['id_don_hang'].toString());
         break;
       default:
         return;
     }
 
-    // Mark notification as read when viewing details
-    _markAsRead(notification['id']);
-
-    // Navigate to the appropriate screen based on your routing setup
-    // You'll need to implement the actual navigation based on your app's structure
-    print('Navigating to: $route');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => screen!),
+    );
   }
 
   @override
@@ -234,24 +240,25 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Widget _buildNotificationItem(Map<String, dynamic> notification) {
     final bool isRead = notification['is_read'] == 1;
+    final int index = _notifications.indexOf(notification) + 1;
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      title: Text(
-        'Thông Báo: ${notification['id']}',
-        style: TextStyle(
-          fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
-          fontSize: 16,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: Text(
+        'Thông Báo: $index',
+          style: TextStyle(
+            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          Text(
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
             notification['loi_nhan'] ?? 'Không có nội dung',
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -263,7 +270,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
         child: const Text('Xem Chi Tiết'),
       ),
-      tileColor: isRead ? null : const Color(0xFF46DFB1).withOpacity(0.05),
+        tileColor: isRead ? null : const Color(0xFF46DFB1).withOpacity(0.05),
       onTap: () => _navigateToOrderDetail(notification),
     );
   }

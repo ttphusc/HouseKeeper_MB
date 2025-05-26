@@ -15,6 +15,7 @@ import '../models/staff.dart';
 import 'support_screen.dart';
 import 'wallet_screen.dart';
 import 'chatbot_screen.dart';
+import 'transaction_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -239,6 +240,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _navigateToTransactionHistory() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TransactionHistoryScreen()),
+    );
+  }
+
   String _formatDate(String dateString) {
     try {
       final dateTime = DateTime.parse(dateString);
@@ -329,28 +337,42 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildHeader(),
 
                     // Our services
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
-                      child: Text(
-                        'Dịch vụ của chúng tôi',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'Dịch vụ của chúng tôi',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                     _buildServicesList(),
 
                     // Featured staff
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
-                      child: Text(
-                        'Nhân viên nổi bật',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'Nhân viên nổi bật',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
@@ -358,32 +380,49 @@ class _HomeScreenState extends State<HomeScreen> {
                     _buildViewAllButton(),
 
                     // Benefits section
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
-                      child: Text(
-                        'Tự tin với lựa chọn của bạn',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'Tự tin với lựa chọn của bạn',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                     _buildBenefitsList(),
 
                     // Service process
-                    const Padding(
-                      padding: EdgeInsets.fromLTRB(16, 24, 16, 16),
-                      child: Text(
-                        'Quy trình sử dụng dịch vụ',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => const LinearGradient(
+                          colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                        ).createShader(bounds),
+                        child: const Text(
+                          'Quy trình sử dụng dịch vụ',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                     _buildServiceSteps(),
+
+                    // Add the new introduction section at the bottom
+                    _buildIntroductionSection(),
 
                     const SizedBox(height: 30),
                   ],
@@ -553,25 +592,30 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Hardcoded services based on the image
     List<Map<String, dynamic>> serviceItems = [
       {
         'name': 'Thuê giúp việc theo giờ',
-        'description': '→ Đặt dịch vụ ngay',
+        'description': 'Linh hoạt theo nhu cầu của bạn',
         'image': 'assets/images/Dichvu1.png',
-        'icon': Icons.cleaning_services,
+        'icon': Icons.access_time,
+        'color': const Color(0xFF4A90E2),
+        'route': const HourlyServiceScreen(serviceId: 1),
       },
       {
         'name': 'Thuê giúp việc định kỳ',
-        'description': '→ Đặt dịch vụ ngay',
+        'description': 'Dịch vụ ổn định, lâu dài',
         'image': 'assets/images/Dichvu2.png',
-        'icon': Icons.schedule,
+        'icon': Icons.calendar_today,
+        'color': const Color(0xFFF5A623),
+        'route': const RecurringServiceScreen(serviceId: 2),
       },
       {
         'name': 'Tổng vệ sinh',
-        'description': '→ Đặt dịch vụ ngay',
+        'description': 'Dọn dẹp toàn diện, chuyên nghiệp',
         'image': 'assets/images/Dichvu3.png',
-        'icon': Icons.home,
+        'icon': Icons.cleaning_services,
+        'color': const Color(0xFF7ED321),
+        'route': const CleaningServiceScreen(serviceId: 3),
       },
     ];
 
@@ -582,109 +626,133 @@ class _HomeScreenState extends State<HomeScreen> {
       itemCount: serviceItems.length,
       itemBuilder: (context, index) {
         final service = serviceItems[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          height: 100,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15),
-            child: Row(
-              children: [
-                // Phần biểu tượng thay cho hình ảnh
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    color: Colors.grey.shade200,
-                    child: Image.asset(
-                      service['image'],
-                      fit: BoxFit.cover,
-                      height: 100,
-                      width: double.infinity,
-                      errorBuilder: (context, error, stackTrace) {
-                        print('Lỗi tải hình: $error');
-                        return Center(
-                          child: Icon(
-                            service['icon'],
-                            color: const Color(0xFF46DFB1),
-                            size: 36,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => service['route']),
+            );
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
                 ),
-                // Mô tả dịch vụ
-                Expanded(
-                  flex: 2,
-                  child: GestureDetector(
-                    onTap: () {
-                      // Handle service tap based on name
-                      if (service['name'] == 'Thuê giúp việc theo giờ') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const HourlyServiceScreen(serviceId: 1),
-                          ),
-                        );
-                      } else if (service['name'] == 'Thuê giúp việc định kỳ') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const RecurringServiceScreen(serviceId: 2),
-                          ),
-                        );
-                      } else if (service['name'] == 'Tổng vệ sinh') {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const CleaningServiceScreen(serviceId: 3),
-                          ),
-                        );
-                      }
-                      // Can add other service types here
-                    },
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE3F5F8),
+              ],
+            ),
+            child: Stack(
+              children: [
+                Row(
+                  children: [
+                    // Service Image/Icon Container
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: service['color'].withOpacity(0.1),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          bottomLeft: Radius.circular(16),
+                        ),
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            service['name'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            service['description'],
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(16),
+                          bottomLeft: Radius.circular(16),
+                        ),
+                        child: Image.asset(
+                          service['image'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              service['icon'],
+                              size: 40,
+                              color: service['color'],
+                            );
+                          },
+                        ),
                       ),
+                    ),
+                    // Service Details
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              service['name'],
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              service['description'],
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: service['color'],
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Đặt ngay',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Service Icon Badge
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: service['color'].withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      service['icon'],
+                      color: service['color'],
+                      size: 24,
                     ),
                   ),
                 ),
@@ -699,7 +767,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildFeaturedStaffList() {
     if (_isLoading) {
       return const SizedBox(
-        height: 220, // Increased height
+        height: 280,
         child: Center(
           child: CircularProgressIndicator(color: Color(0xFF46DFB1)),
         ),
@@ -707,134 +775,227 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Container(
-      height: 220, // Increased height
+      height: 280,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: featuredStaff.isEmpty
-          ? const Center(child: Text("Không có nhân viên nổi bật"))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.person_off, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Chưa có nhân viên nổi bật",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
           : ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: featuredStaff.length,
               itemBuilder: (context, index) {
                 final staff = featuredStaff[index];
-                return Container(
-                  width: 180, // Increased width
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE3F6F9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircleAvatar(
-                        radius: 35, // Increased avatar size
-                        backgroundColor: Colors.grey.shade200,
-                        child: staff.avatarUrl != null &&
-                                staff.avatarUrl!.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(35),
-                                child: Image.network(
-                                  staff.avatarUrl!,
-                                  width: 70,
-                                  height: 70,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.person, size: 35),
-                                ),
-                              )
-                            : const Icon(Icons.person, size: 35),
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            StaffDetailScreen(staffId: staff.id),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        staff.name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    );
+                  },
+                  child: Container(
+                    width: 200,
+                    margin: const EdgeInsets.only(right: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.cake,
-                              size: 14, color: Colors.black54),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Tuổi: ${staff.age}',
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.work,
-                              size: 14, color: Colors.black54),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              'KN: ${staff.experience}',
-                              style: const TextStyle(fontSize: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        // Avatar Section with Gradient Background
+                        Container(
+                          height: 140,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                            ),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(20),
+                              topRight: Radius.circular(20),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(5, (index) {
-                          return Icon(
-                            index < staff.rating
-                                ? Icons.star_rate_rounded
-                                : Icons.star_rate_rounded,
-                            color: index < staff.rating
-                                ? const Color(0xFFFFC107)
-                                : const Color(0xFFFFE082),
-                            size: 20,
-                          );
-                        }),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    StaffDetailScreen(staffId: staff.id),
+                          child: Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    spreadRadius: 1,
+                                    blurRadius: 5,
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            minimumSize: const Size(double.infinity, 32),
-                            padding: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                          child: const Text(
-                            'XEM CHI TIẾT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              child: CircleAvatar(
+                                radius: 45,
+                                backgroundColor: Colors.grey[200],
+                                child: staff.avatarUrl != null &&
+                                        staff.avatarUrl!.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(45),
+                                        child: Image.network(
+                                          staff.avatarUrl!,
+                                          width: 90,
+                                          height: 90,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const Icon(Icons.person,
+                                                      size: 45,
+                                                      color: Colors.grey),
+                                        ),
+                                      )
+                                    : const Icon(Icons.person,
+                                        size: 45, color: Colors.grey),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        // Staff Info Section
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // Name and Rating
+                                Column(
+                                  children: [
+                                    Text(
+                                      staff.name,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: List.generate(5, (index) {
+                                        return Icon(
+                                          index < staff.rating
+                                              ? Icons.star_rounded
+                                              : Icons.star_outline_rounded,
+                                          color: index < staff.rating
+                                              ? const Color(0xFFFFD700)
+                                              : Colors.grey[300],
+                                          size: 18,
+                                        );
+                                      }),
+                                    ),
+                                  ],
+                                ),
+                                // Info Row
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildInfoChip(
+                                      Icons.person_outline_rounded,
+                                      '${staff.age} tuổi',
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 20,
+                                      color: Colors.grey[300],
+                                    ),
+                                    _buildInfoChip(
+                                      Icons.work_outline_rounded,
+                                      staff.experience,
+                                    ),
+                                  ],
+                                ),
+                                // View Details Button
+                                Container(
+                                  width: double.infinity,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF46DFB1),
+                                        Color(0xFF2BB594)
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'XEM CHI TIẾT',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: Colors.grey[600],
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -870,33 +1031,33 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': 'Đặt lịch linh hoạt',
         'description':
             'Thao tác dễ dàng, chỉ cần vài phút trên ứng dụng, bạn có thể đặt người giúp việc theo nhu cầu với thời gian linh hoạt nhất.',
-        'icon': Icons.access_time,
-        'color': Colors.blue[800],
-        'bgColor': const Color(0xFF003366),
+        'icon': Icons.access_time_filled,
+        'color': const Color(0xFF4A90E2),
+        'gradientColors': [Color(0xFF4A90E2), Color(0xFF357ABD)],
       },
       {
         'title': 'Giá cả minh bạch',
         'description':
             'Giá dịch vụ rõ ràng, được hiển thị minh bạch trên ứng dụng. Bạn không cần lo lắng về bất kỳ khoản phí ẩn nào.',
-        'icon': Icons.monetization_on,
-        'color': const Color(0xFFFFD700),
-        'bgColor': const Color(0xFF003366),
+        'icon': Icons.payments_rounded,
+        'color': const Color(0xFFFFB800),
+        'gradientColors': [Color(0xFFFFB800), Color(0xFFFF9500)],
       },
       {
         'title': 'Đa dạng dịch vụ',
         'description':
             'Chúng tôi cung cấp nhiều loại hình dịch vụ từ dọn dẹp nhà cửa, giặt giũ, đáp ứng mọi nhu cầu của gia đình bạn.',
-        'icon': Icons.cleaning_services,
-        'color': Colors.orange,
-        'bgColor': const Color(0xFF003366),
+        'icon': Icons.cleaning_services_rounded,
+        'color': const Color(0xFF46DFB1),
+        'gradientColors': [Color(0xFF46DFB1), Color(0xFF2BB594)],
       },
       {
         'title': 'An toàn và đáng tin cậy',
         'description':
             'Người giúp việc được duyệt kỹ càng với hồ sơ lý lịch rõ ràng. Đội ngũ giám sát đảm bảo quá trình làm việc diễn ra an toàn và hiệu quả.',
-        'icon': Icons.verified_user,
-        'color': Colors.green,
-        'bgColor': const Color(0xFF003366),
+        'icon': Icons.verified_user_rounded,
+        'color': const Color(0xFF2ECC71),
+        'gradientColors': [Color(0xFF2ECC71), Color(0xFF27AE60)],
       },
     ];
 
@@ -910,52 +1071,70 @@ class _HomeScreenState extends State<HomeScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: benefit['bgColor'],
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: benefit['gradientColors'],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: benefit['color'].withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    benefit['icon'],
-                    size: 24,
-                    color: benefit['color'],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        benefit['title'],
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        benefit['description'],
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.85),
-                          fontSize: 14,
-                        ),
+                      child: Icon(
+                        benefit['icon'],
+                        size: 32,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            benefit['title'],
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            benefit['description'],
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );
@@ -970,160 +1149,482 @@ class _HomeScreenState extends State<HomeScreen> {
         'title': 'Chọn Dịch Vụ',
         'icon': Icons.home_repair_service,
         'iconWidget': ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
           child: Image.asset(
             'assets/images/badge-service.png',
-            width: 60,
-            height: 60,
+            width: 80,
+            height: 80,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.home_repair_service,
-                size: 40,
-                color: Color(0xFF46DFB1),
+              return Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF9966), Color(0xFFFF5E62)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.home_repair_service,
+                  size: 40,
+                  color: Colors.white,
+                ),
               );
             },
           ),
         ),
-        'description':
-            'Chúng tôi có nhiều dịch vụ tiến hành hỗ trợ bạn và đồng hành với bạn',
+        'color': const Color(0xFFFF9966),
       },
       {
         'number': 2,
         'title': 'Chọn Thời Gian Và Vị Trí',
         'icon': Icons.place,
         'iconWidget': ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
           child: Image.asset(
             'assets/images/vitri.png',
-            width: 60,
-            height: 60,
+            width: 80,
+            height: 80,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.place,
-                size: 40,
-                color: Color(0xFF46DFB1),
+              return Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF4ECDC4), Color(0xFF2BAF9A)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.place,
+                  size: 40,
+                  color: Colors.white,
+                ),
               );
             },
           ),
         ),
-        'description':
-            'Chúng tôi có nhiều dịch vụ tiến hành hỗ trợ bạn và đồng hành với bạn',
+        'color': const Color(0xFF4ECDC4),
       },
       {
         'number': 3,
         'title': 'Lên Lịch Làm Việc',
         'icon': Icons.schedule,
         'iconWidget': ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
           child: Image.asset(
             'assets/images/Qt02.jpg',
-            width: 60,
-            height: 60,
+            width: 80,
+            height: 80,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.schedule,
-                size: 40,
-                color: Color(0xFF46DFB1),
+              return Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFC371), Color(0xFFFF5F6D)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.schedule,
+                  size: 40,
+                  color: Colors.white,
+                ),
               );
             },
           ),
         ),
-        'description':
-            'Chúng tôi có nhiều dịch vụ tiến hành hỗ trợ bạn và đồng hành với bạn',
+        'color': const Color(0xFFFFC371),
       },
       {
         'number': 4,
         'title': 'Đánh Giá Và Xếp Hạng',
         'icon': Icons.star_rate,
         'iconWidget': ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(16),
           child: Image.asset(
             'assets/images/Qt04.png',
-            width: 60,
-            height: 60,
+            width: 80,
+            height: 80,
             fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.star_rate,
-                size: 40,
-                color: Color(0xFF46DFB1),
+              return Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF56CCF2), Color(0xFF2F80ED)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.star_rate,
+                  size: 40,
+                  color: Colors.white,
+                ),
               );
             },
           ),
         ),
-        'description':
-            'Chúng tôi có nhiều dịch vụ tiến hành hỗ trợ bạn và đồng hành với bạn',
+        'color': const Color(0xFF56CCF2),
       },
     ];
 
-    return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.85,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: GridView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.85,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: steps.length,
+        itemBuilder: (context, index) {
+          final step = steps[index];
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: step['color'].withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: step['color'],
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${step['number']}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 8),
+                      step['iconWidget'],
+                      const SizedBox(height: 16),
+                      Text(
+                        step['title'],
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
-      itemCount: steps.length,
-      itemBuilder: (context, index) {
-        final step = steps[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFF46DFB1),
-                ),
-                margin: const EdgeInsets.only(top: 16, bottom: 12),
-                alignment: Alignment.center,
-                child: Text(
-                  '${step['number']}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Container(
+    );
+  }
+
+  Widget _buildIntroductionSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      color: Colors.white,
+      child: Column(
+        children: [
+          // About Us Section
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                Container(
                   width: double.infinity,
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'Về Chúng Tôi',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  child: step['iconWidget'],
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                child: Text(
-                  step['title'],
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                  child: const Column(
+                    children: [
+                      Text(
+                        'House Keeper',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Thành lập năm 2025, Dịch Vụ Giúp Việc HouseKeeper hoạt động trong lĩnh vực cung cấp dịch vụ hỗ trợ gia đình như giúp việc nhà, nấu ăn, chăm sóc trẻ nhỏ...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 32),
+
+          // Core Values Section
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'Giá Trị Cốt Lõi',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.2,
+                  children: [
+                    _buildCoreValueCard(
+                      Icons.favorite,
+                      'Tận Tâm',
+                      'Luôn đặt lợi ích của khách hàng lên hàng đầu',
+                      const Color(0xFFFF6B6B),
+                    ),
+                    _buildCoreValueCard(
+                      Icons.people,
+                      'Tôn Trọng',
+                      'Tôn trọng khách hàng, đồng nghiệp và chính mình',
+                      const Color(0xFF4ECDC4),
+                    ),
+                    _buildCoreValueCard(
+                      Icons.lightbulb,
+                      'Đổi Mới',
+                      'Không ngừng cải tiến để phục vụ tốt hơn mỗi ngày',
+                      const Color(0xFFFFBE0B),
+                    ),
+                    _buildCoreValueCard(
+                      Icons.shield,
+                      'Trách Nhiệm',
+                      'Cam kết với chất lượng dịch vụ và đạo đức nghề nghiệp',
+                      const Color(0xFF3A86FF),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Contact Section
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF46DFB1).withOpacity(0.1),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF46DFB1), Color(0xFF2BB594)],
+                    ).createShader(bounds),
+                    child: const Text(
+                      'Liên Hệ Với Chúng Tôi',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 32,
+                  runSpacing: 16,
+                  children: [
+                    _buildContactInfo(
+                      Icons.location_on,
+                      '123 Đường Chính, Đà Nẵng',
+                    ),
+                    _buildContactInfo(
+                      Icons.phone,
+                      '+84 123 456 789',
+                    ),
+                    _buildContactInfo(
+                      Icons.email,
+                      'hotro@housekeeper.com',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoreValueCard(
+    IconData icon,
+    String title,
+    String description,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 40,
+            color: color,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactInfo(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: const Color(0xFF46DFB1),
+          size: 24,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 
@@ -1196,6 +1697,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () {
                       Navigator.pop(context);
                       _navigateToOrderHistory();
+                    },
+                  ),
+                  _buildDrawerItem(
+                    icon: Icons.payment,
+                    title: 'Lịch sử giao dịch',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateToTransactionHistory();
                     },
                   ),
                   _buildDrawerItem(

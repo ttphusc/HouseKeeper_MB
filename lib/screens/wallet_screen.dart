@@ -122,10 +122,10 @@ class _WalletScreenState extends State<WalletScreen> {
       );
 
       if (response.data['status'] == true) {
-        setState(() {
+      setState(() {
           _lsGiaoDich = List<Map<String, dynamic>>.from(response.data['data']);
         });
-      } else {
+        } else {
         _showErrorToast("Thông báo: ${response.data['message']}");
       }
     } catch (error) {
@@ -173,8 +173,8 @@ class _WalletScreenState extends State<WalletScreen> {
   Future<void> _updateBankAccount() async {
     if (_bankAccountController.text.isEmpty || _selectedBank.isEmpty) {
       _showErrorToast('Vui lòng điền đầy đủ thông tin tài khoản ngân hàng');
-      return;
-    }
+                            return;
+                          }
 
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -252,8 +252,8 @@ class _WalletScreenState extends State<WalletScreen> {
   Future<void> _withdrawMoney() async {
     if (_withdrawAmountController.text.isEmpty) {
       _showErrorToast('Vui lòng nhập số tiền cần rút');
-      return;
-    }
+                            return;
+                          }
 
     final amount = double.parse(_rawInput);
     if (amount < 10000) {
@@ -280,7 +280,7 @@ class _WalletScreenState extends State<WalletScreen> {
       if (response.data['status'] == true) {
         _showSuccessToast("Thông báo: ${response.data['message']}");
         Navigator.pop(context);
-        _loadWalletData();
+                            _loadWalletData();
       } else {
         _showErrorToast("Thông báo: ${response.data['message']}");
       }
@@ -401,7 +401,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+        children: [
                       // Balance Section
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -414,33 +414,33 @@ class _WalletScreenState extends State<WalletScreen> {
                               spreadRadius: 1,
                               blurRadius: 6,
                               offset: const Offset(0, 3),
-                            ),
-                          ],
-                        ),
-                        child: Column(
+          ),
+        ],
+      ),
+      child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Số dư hiện tại',
-                                      style: TextStyle(
-                                        fontSize: 16,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Số dư hiện tại',
+            style: TextStyle(
+              fontSize: 16,
                                         color: Colors.grey,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
                                       _formatCurrency(
                                           _walletData['so_du']?.toDouble() ??
                                               0),
-                                      style: const TextStyle(
+            style: const TextStyle(
                                         fontSize: 24,
-                                        fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.bold,
                                         color: Color(0xFF46DFB1),
                                       ),
                                     ),
@@ -453,10 +453,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: const Color(0xFF46DFB1),
                                     foregroundColor: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
+            ),
+          ),
+        ],
+      ),
                           ],
                         ),
                       ),
@@ -481,7 +481,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       // Transaction History Section
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+        children: [
                           const Text(
                             'Lịch sử giao dịch',
                             style: TextStyle(
@@ -567,10 +567,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                           : Colors.red,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
+                ),
+              );
+            },
+          ),
 
                       const SizedBox(height: 24),
 
@@ -590,7 +590,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
@@ -637,9 +637,9 @@ class _WalletScreenState extends State<WalletScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Cập nhật tài khoản ngân hàng'),
         content: SingleChildScrollView(
-          child: Column(
+      child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+        children: [
               TextField(
                 controller: _bankAccountController,
                 decoration: const InputDecoration(
@@ -697,7 +697,7 @@ class _WalletScreenState extends State<WalletScreen> {
         content: _hasBankAccount
             ? Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+          children: [
                   Image.network(
                     _getQRCodeUrl(),
                     height: 200,
@@ -707,8 +707,8 @@ class _WalletScreenState extends State<WalletScreen> {
                       size: 200,
                       color: Colors.grey,
                     ),
-                  ),
-                  const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 16),
                   const Text(
                     'Vui lòng quét mã QR để thanh toán.\nSau khi chuyển khoản, nhấn "Xác nhận".',
                     textAlign: TextAlign.center,
@@ -732,10 +732,10 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               child: const Text('Xác nhận'),
             ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
+    }
 
   void _showWithdrawDialog() {
     showDialog(
@@ -758,7 +758,7 @@ class _WalletScreenState extends State<WalletScreen> {
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
+        decoration: BoxDecoration(
                       color: Colors.amber.shade50,
                       borderRadius: BorderRadius.circular(8),
                     ),

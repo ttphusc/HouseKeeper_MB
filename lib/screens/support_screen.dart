@@ -2,8 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pusher_client/pusher_client.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
+import 'dart:html' if (dart.library.io) 'dart:io';
+import 'package:js/js.dart';
+
+@JS('Pusher')
+class PusherJS {
+  external PusherJS(String key, dynamic options);
+  external void connect();
+  external Channel subscribe(String channelName);
+}
+
+@JS()
+class Channel {
+  external void bind(String eventName, Function callback);
+}
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -139,88 +153,167 @@ class _SupportScreenState extends State<SupportScreen> {
 
   Future<void> _initializePusher() async {
     if (_currentUserId == null) {
-      print('currentUserId chưa được gán, không thể đăng ký channel.');
-      return;
-    }
-
-    if (kIsWeb) {
-      print('Đang chạy trên web - bỏ qua khởi tạo Pusher');
+      // print('currentUserId chưa được gán, không thể đăng ký channel.');
       return;
     }
 
     try {
-      print('Initializing Pusher for user ID: $_currentUserId');
+      // print('Current User ID: $_currentUserId');
+      final String chatChannel = 'chat_user.$_currentUserId';
+      final String notificationChannel = 'notifications.$_currentUserId';
 
-      // Disconnect existing connection if any
-      channel?.unbind('.message-sent-event');
-      pusher?.unsubscribe('chat_user.$_currentUserId');
-      await pusher?.disconnect();
+      // print('Đăng ký channel: $chatChannel và $notificationChannel');
 
-      pusher = PusherClient(
-        '0911c58bf746f219ad1d',
-        PusherOptions(
-          cluster: 'ap1',
-          encrypted: true,
-        ),
-      );
-
-      await pusher?.connect();
-
-      // Subscribe to chat channel exactly like website
-      String channelName = 'chat_user.$_currentUserId';
-      print('Subscribing to channel: $channelName');
-
-      channel = pusher?.subscribe(channelName);
-
-      channel?.bind('.message-sent-event', (PusherEvent? event) {
-        print('Received event: ${event?.data}');
-
-        if (event?.data != null) {
-          try {
-            Map<String, dynamic> eventData = event!.data is String
-                ? jsonDecode(event.data as String)
-                : Map<String, dynamic>.from(event.data as Map);
-
-            print('Parsed event data: $eventData');
-
-            // Match exactly website's condition
-            if (eventData['sender_type'] != 1) {
-              print('✅ Received message from admin');
-              setState(() {
-                _messages = [..._messages, eventData];
-              });
-              _scrollToBottom();
-
-              // Show notification like website
-              _showSuccess(
-                  '🔔 Tin nhắn mới từ admin: ${eventData['noi_dung']}');
-            }
-          } catch (e) {
-            print('Error processing event: $e');
-            print('Raw event data: ${event?.data}');
-          }
+      // Cleanup any existing connection
+      if (pusher != null) {
+        if (channel != null) {
+          channel?.bind('.message-sent-event', (_) {});
         }
-      });
+        pusher?.unsubscribe(chatChannel);
+        pusher?.unsubscribe(notificationChannel);
+        await pusher?.disconnect();
+        channel = null;
+      }
 
-      pusher?.onConnectionStateChange((state) {
-        print('Pusher connection state: ${state?.currentState}');
+      if (kIsWeb) {
+        _initializeWebSocket(chatChannel, notificationChannel);
+      } else {
+        _initializeMobilePusher(chatChannel, notificationChannel);
+      }
+    } catch (e, s) {
+      // print('Error initializing Pusher: $e');
+      // print('Stack trace: $s');
+      Future.delayed(const Duration(seconds: 3), _initializePusher);
+    }
+  }
 
-        print('Successfully connected to Pusher');
-        print('Listening on channel: $channelName');
-        if (state?.currentState == 'failed') {
-          print('Connection failed - retrying in 3 seconds...');
-          Future.delayed(const Duration(seconds: 3), () {
-            _initializePusher();
-          });
-        }
-      });
+  void _initializeWebSocket(String chatChannel, String notificationChannel) {
+    try {
+      _startPeriodicMessageCheck();
     } catch (e) {
-      print('Error initializing Pusher: $e');
-      print('Stack trace: ${e is Error ? e.stackTrace : ''}');
-      // Retry connection after delay
-      Future.delayed(const Duration(seconds: 3), () {
-        _initializePusher();
-      });
+      // print('Error initializing Web Socket: $e');
+    }
+  }
+
+  void _startPeriodicMessageCheck() {
+    // Check for new messages every 5 seconds
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 5));
+      if (!mounted) return false;
+      await _loadMessages();
+      return true;
+    });
+  }
+
+  void _initializeMobilePusher(String chatChannel, String notificationChannel) {
+    pusher = PusherClient(
+      '0911c58bf746f219ad1d',
+      PusherOptions(
+        cluster: 'ap1',
+        encrypted: true,
+      ),
+    );
+
+    pusher?.connect().then((_) {
+      // print('✅ Pusher connected successfully');
+
+      // Subscribe to chat channel
+      channel = pusher?.subscribe(chatChannel) as Channel?;
+      if (channel != null) {
+        channel?.bind('.message-sent-event', (event) {
+          _handleMessageEvent(event);
+        });
+      }
+
+      // Subscribe to notification channel
+      final notifChannel = pusher?.subscribe(notificationChannel);
+      if (notifChannel != null) {
+        notifChannel.bind('.notification-event', (event) {
+          _handleNotificationEvent(event);
+        });
+      }
+    }).catchError((error) {
+      // print('❌ Pusher connection error: $error');
+      Future.delayed(const Duration(seconds: 3), _initializePusher);
+    });
+
+    pusher?.onConnectionStateChange((state) {
+      // print('Pusher connection state changed to: ${state?.currentState}');
+      if (state?.currentState == 'connected') {
+        // print('✅ Successfully connected to Pusher');
+      } else if (state?.currentState == 'disconnected' ||
+          state?.currentState == 'failed') {
+        // print('❌ Connection ${state?.currentState} - retrying in 3 seconds...');
+        Future.delayed(const Duration(seconds: 3), _initializePusher);
+      }
+    });
+  }
+
+  void _handleMessageEvent(PusherEvent? event) {
+    if (event == null || event.data == null) {
+      // print('PUSHER_DEBUG: Received null event or event.data.');
+      return;
+    }
+    // print('PUSHER_DEBUG: Received event raw data: ${event.data}');
+
+    try {
+      Map<String, dynamic> messageData;
+      if (event.data is String) {
+        messageData = jsonDecode(event.data as String);
+      } else {
+        messageData = Map<String, dynamic>.from(event.data as Map);
+      }
+      // print('PUSHER_DEBUG: Parsed message data: $messageData');
+
+      final senderType = messageData['sender_type'];
+      if (senderType != 1) {
+        final newMessage = {
+          'id': messageData['id'],
+          'nguoi_gui_id': messageData['nguoi_gui_id'],
+          'nguoi_nhan_id': messageData['nguoi_nhan_id'],
+          'noi_dung': messageData['noi_dung'],
+          'sender_type': senderType,
+          'created_at':
+              messageData['created_at'] ?? DateTime.now().toIso8601String(),
+          'nguoi_gui_ten': messageData['nguoi_gui_ten'] ?? 'Admin',
+          'nguoi_gui_avatar': messageData['nguoi_gui_avatar'],
+        };
+
+        setState(() {
+          _messages =
+              List<Map<String, dynamic>>.from([..._messages, newMessage]);
+        });
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToBottom();
+        });
+
+        _showSuccess('Tin nhắn mới từ Admin');
+      }
+    } catch (e) {
+      // print('Error processing message: $e');
+    }
+  }
+
+  void _handleNotificationEvent(PusherEvent? event) {
+    if (event == null || event.data == null) {
+      // print('Received null notification event');
+      return;
+    }
+    // print('Received notification: ${event.data}');
+
+    try {
+      Map<String, dynamic> notifData;
+      if (event.data is String) {
+        notifData = jsonDecode(event.data as String);
+      } else {
+        notifData = Map<String, dynamic>.from(event.data as Map);
+      }
+
+      _showSuccess(
+          'Thông báo mới: ${notifData['message'] ?? 'Có thông báo mới'}');
+    } catch (e) {
+      // print('Error processing notification: $e');
     }
   }
 
@@ -346,22 +439,28 @@ class _SupportScreenState extends State<SupportScreen> {
   String _formatTime(String? dateString) {
     if (dateString == null) return '';
     try {
-      final date = DateTime.parse(dateString);
-      final hours = date.hour.toString().padLeft(2, '0');
-      final minutes = date.minute.toString().padLeft(2, '0');
-      final day = date.day.toString().padLeft(2, '0');
-      final month = (date.month).toString().padLeft(2, '0');
-      final year = date.year;
+      final utcDate = DateTime.parse(
+          dateString); // Assuming dateString is in ISO 8601 format (likely UTC)
+      final localDate = utcDate.toLocal(); // Convert to local time
+
+      final hours = localDate.hour.toString().padLeft(2, '0');
+      final minutes = localDate.minute.toString().padLeft(2, '0');
+      final day = localDate.day.toString().padLeft(2, '0');
+      final month =
+          (localDate.month).toString().padLeft(2, '0'); // Month is 1-based
+      final year = localDate.year;
       return '$hours:$minutes / $day/$month/$year';
     } catch (e) {
-      return dateString;
+      print('Error formatting time: $e for $dateString');
+      return dateString; // Fallback to original string if parsing fails
     }
   }
 
   Future<void> _refreshChat() async {
     try {
       // Disconnect current Pusher connection
-      channel?.unbind('.message-sent-event');
+      channel?.bind(
+          '.message-sent-event', (_) {}); // Unbind by binding empty handler
       pusher?.unsubscribe('chat_user.$_currentUserId');
       pusher?.unsubscribe('notifications.$_currentUserId');
       pusher?.disconnect();
@@ -608,10 +707,17 @@ class _SupportScreenState extends State<SupportScreen> {
 
   @override
   void dispose() {
-    print('Disposing chat screen - cleaning up Pusher connection');
-    channel?.unbind('.message-sent-event');
-    pusher?.unsubscribe('chat_user.$_currentUserId');
-    pusher?.disconnect();
+    if (!kIsWeb && pusher != null) {
+      // print('Disposing chat screen - cleaning up Pusher connection');
+      if (channel != null) {
+        channel?.bind('.message-sent-event', (_) {});
+      }
+      if (_currentUserId != null) {
+        pusher?.unsubscribe('chat_user.$_currentUserId');
+        pusher?.unsubscribe('notifications.$_currentUserId');
+      }
+      pusher?.disconnect();
+    }
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();

@@ -389,9 +389,9 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                               _buildSectionTitle(
                                   Icons.calendar_today, 'Ngày bắt đầu làm'),
                               _buildDatePicker(),
@@ -399,18 +399,18 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                               _buildSectionTitle(
                                   Icons.access_time, 'Giờ bắt đầu làm'),
                               _buildTimePicker(),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
                     const SizedBox(height: 20),
 
                     // Weekly schedule
@@ -444,8 +444,8 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
                     const SizedBox(height: 20),
                   ],
                 ),
-              ),
-            ),
+        ),
+      ),
     );
   }
 
@@ -509,16 +509,16 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
                 '2 Giờ',
                 _durationHours == 2,
                 () {
-                  setState(() {
+        setState(() {
                     _durationHours = 2;
                     _updateTotalPrice();
-                  });
-                },
+        });
+      },
                 subtitle: 'Tối đa 60m2 Tổng sàn',
               ),
             ),
             const SizedBox(width: 8),
-            Expanded(
+              Expanded(
               child: _buildSelectionButton(
                 '2.5 Giờ',
                 _durationHours == 2.5,
@@ -534,8 +534,8 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        Row(
-          children: [
+                    Row(
+                      children: [
             Expanded(
               child: _buildSelectionButton(
                 '4 Giờ',
@@ -576,9 +576,9 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
               child: Center(
                 child: Text(
                   day['label'],
-                  style: TextStyle(
+                          style: TextStyle(
                     color: isSelected ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -610,12 +610,12 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
             '6 Tháng',
             _months == 6,
             () {
-              setState(() {
+                  setState(() {
                 _months = 6;
                 _updateTotalPrice();
-              });
-            },
-          ),
+                  });
+                },
+              ),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -649,19 +649,19 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
 
   Widget _buildDatePicker() {
     return InkWell(
-      onTap: () async {
+        onTap: () async {
         final pickedDate = await showDatePicker(
-          context: context,
+            context: context,
           initialDate: _selectedDate,
-          firstDate: DateTime.now(),
+            firstDate: DateTime.now(),
           lastDate: DateTime.now().add(const Duration(days: 60)),
         );
         if (pickedDate != null) {
-          setState(() {
+            setState(() {
             _selectedDate = pickedDate;
-          });
-        }
-      },
+            });
+          }
+        },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
@@ -695,11 +695,11 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
           isExpanded: true,
           onChanged: (value) {
             if (value != null) {
-              setState(() {
+            setState(() {
                 _selectedTime = value;
-              });
-            }
-          },
+            });
+          }
+        },
           items: _timeSlots.map((time) {
             return DropdownMenuItem<String>(
               value: time,
@@ -713,7 +713,7 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
 
   Widget _buildPaymentMethodSelector() {
     return Row(
-      children: [
+          children: [
         Expanded(
           child: _buildSelectionButton(
             'Ngân hàng',
@@ -731,11 +731,11 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
             'Ví điện tử',
             _paymentMethod == 2,
             () {
-              setState(() {
+                setState(() {
                 _paymentMethod = 2;
-              });
-            },
-          ),
+                });
+              },
+            ),
         ),
         Expanded(child: Container()),
       ],
@@ -765,8 +765,8 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
     return Row(
       children: [
         Expanded(
-          child: Container(
-            decoration: BoxDecoration(
+                  child: Container(
+                    decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(4),
             ),
@@ -777,9 +777,9 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
                 border: InputBorder.none,
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-              ),
-            ),
-          ),
+                      ),
+                    ),
+                  ),
         ),
         const SizedBox(width: 8),
         ElevatedButton(
@@ -868,11 +868,11 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
             height: 45,
             child: ElevatedButton(
               onPressed: _createOrder,
-              style: ElevatedButton.styleFrom(
+      style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
               ),
               child: _isLoading
                   ? const SizedBox(
@@ -885,9 +885,9 @@ class _RecurringServiceScreenState extends State<RecurringServiceScreen> {
                     )
                   : const Text(
                       'Thanh toán',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
                       ),
                     ),
             ),

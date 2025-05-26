@@ -382,9 +382,9 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
                               _buildSectionTitle(
                                   Icons.calendar_today, 'Ngày bắt đầu làm'),
                               _buildDatePicker(),
@@ -392,10 +392,10 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                               _buildSectionTitle(
                                   Icons.access_time, 'Giờ bắt đầu làm'),
                               _buildTimePicker(),
@@ -425,9 +425,9 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
                     // Summary panel
                     _buildOrderSummary(),
                     const SizedBox(height: 20),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
             ),
     );
   }
@@ -439,14 +439,14 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
         children: [
           Icon(icon, color: Colors.green, size: 18),
           const SizedBox(width: 8),
-          Text(
+            Text(
             title,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
       ),
     );
   }
@@ -489,28 +489,28 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: _propertyTypes.map((type) {
           bool isSelected = _propertyType == type['value'];
-          return GestureDetector(
-            onTap: () {
-              setState(() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
                 _propertyType = type['value'];
-              });
-            },
-            child: Container(
+        });
+      },
+      child: Container(
               width: 70,
               height: 70,
-              decoration: BoxDecoration(
+        decoration: BoxDecoration(
                 color:
                     isSelected ? const Color(0xFFE0F7E9) : Colors.grey.shade100,
                 shape: BoxShape.circle,
-                border: Border.all(
+          border: Border.all(
                   color:
                       isSelected ? const Color(0xFF28A745) : Colors.transparent,
                   width: 2,
-                ),
-              ),
-              child: Column(
+          ),
+        ),
+        child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+          children: [
                   Icon(
                     type['icon'],
                     color: isSelected
@@ -519,9 +519,9 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
                     size: 24,
                   ),
                   const SizedBox(height: 4),
-                  Text(
+                        Text(
                     type['label'],
-                    style: TextStyle(
+                          style: TextStyle(
                       color: isSelected
                           ? const Color(0xFF28A745)
                           : Colors.grey.shade700,
@@ -530,10 +530,10 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
                           isSelected ? FontWeight.bold : FontWeight.normal,
                     ),
                     textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
           );
         }).toList(),
       ),
@@ -563,16 +563,16 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
               child: Center(
                 child: Text(
                   size['label'],
-                  style: TextStyle(
+                style: TextStyle(
                     color: isSelected ? Colors.white : Colors.black87,
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
                   ),
                   textAlign: TextAlign.center,
                 ),
-              ),
-            ),
-          );
+        ),
+      ),
+    );
         }).toList(),
       ),
     );
@@ -588,7 +588,7 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
           lastDate: DateTime.now().add(const Duration(days: 60)),
         );
         if (pickedDate != null) {
-          setState(() {
+        setState(() {
             _selectedDate = pickedDate;
           });
         }
@@ -599,17 +599,17 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
           border: Border.all(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(4),
         ),
-        child: Row(
+          child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
+                  children: [
+                    Text(
               DateFormat('dd/MM/yyyy').format(_selectedDate),
               style: const TextStyle(fontSize: 16),
             ),
             const Icon(Icons.calendar_today, size: 18),
-          ],
-        ),
-      ),
+                  ],
+                ),
+              ),
     );
   }
 
@@ -624,9 +624,9 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
         child: DropdownButton<String>(
           value: _selectedTime,
           isExpanded: true,
-          onChanged: (value) {
+                onChanged: (value) {
             if (value != null) {
-              setState(() {
+                  setState(() {
                 _selectedTime = value;
               });
             }
@@ -665,8 +665,8 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
               setState(() {
                 _paymentMethod = 2;
               });
-            },
-          ),
+          },
+        ),
         ),
         Expanded(child: Container()),
       ],
@@ -677,7 +677,7 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(8),
         color: Colors.grey.shade50,
       ),
       child: TextField(
@@ -744,10 +744,10 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
           ),
         ],
       ),
-      child: Column(
-        children: [
+        child: Column(
+          children: [
           Row(
-            children: [
+              children: [
               // Staff and hours info
               Expanded(
                 child: _buildSummaryItem(
@@ -763,13 +763,13 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
                   'Tổng tiền hoá đơn:',
                   value: _formatCurrency(_totalPrice),
                   valueColor: Colors.red,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           const SizedBox(height: 12),
-          Row(
-            children: [
+              Row(
+                children: [
               // Discount amount
               Expanded(
                 child: _buildSummaryItem(
@@ -814,11 +814,11 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
                     )
                   : const Text(
                       'Thanh toán',
-                      style: TextStyle(
+                    style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
             ),
           ),
         ],
@@ -829,23 +829,23 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
   Widget _buildSummaryItem(IconData icon, String title,
       {String? value, Color? valueColor}) {
     return Column(
-      children: [
+              children: [
         Icon(icon, size: 24, color: const Color(0xFF46DFB1)),
         const SizedBox(height: 4),
-        Text(
+                Text(
           title,
-          style: TextStyle(
+                  style: TextStyle(
             fontSize: 12,
             color: Colors.grey.shade700,
-          ),
+                  ),
           textAlign: TextAlign.center,
-        ),
+                ),
         if (value != null)
-          Text(
+                Text(
             value,
-            style: TextStyle(
+                  style: TextStyle(
               fontSize: 14,
-              fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.bold,
               color: valueColor ?? Colors.black,
             ),
             textAlign: TextAlign.center,
@@ -863,12 +863,12 @@ class _CleaningServiceScreenState extends State<CleaningServiceScreen> {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF06D7A0) : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
+      ),
+      child: Text(
           title,
-          style: TextStyle(
+        style: TextStyle(
             color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.bold,
           ),
           textAlign: TextAlign.center,
         ),
